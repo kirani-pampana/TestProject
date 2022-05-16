@@ -21,7 +21,5 @@ public class Launcher {
 
         if (leftParenthesisCnt == rightParenthisisCnt) return true;
         else return false;
-
-
     }
 }
