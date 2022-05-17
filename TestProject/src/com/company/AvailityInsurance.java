@@ -1,17 +1,11 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,29 +13,98 @@ public class AvailityInsurance {
     public static void main(String[] args) throws IOException {
         // provide complete path for parent directory
 
-        String mainDir = "/Users/avinash/Documents/TestWorkspace/TestProject/src/TestData/";
+        String mainDir = "/Users/kirani/Documents/TestWorkspace/TestProject/src/TestData";
 
         List<File> csvFiles = getallfiles(mainDir);
+        List<File> finalFiles = new ArrayList<>();
 
         for (File file: csvFiles) {
             List<Avality> avality = readFromCsv(file.getAbsolutePath());
 
             for (Avality b : avality) {
-                File csvOutputFile = new File(mainDir + "//" + b.getInsuranceCompany());
+                File csvOutputFile = new File(mainDir + "//" + b.getInsuranceCompany()+".csv");
                 PrintWriter pw = null;
                 if (csvOutputFile.exists()) {
                     pw = new PrintWriter(new FileOutputStream(csvOutputFile, true));
                 }
                 else {
                     pw = new PrintWriter(csvOutputFile);
+                    finalFiles.add(csvOutputFile);
                 }
                 pw.append(b.toString()+"\n");
                 pw.close();
-
             }
         }
+
+
+        // Trigger sorting method to sort as per column positions of the Last Name in asc order
+        for (File file : finalFiles) {
+            sortingFile(file);
+
+        }
+
+        // Trigger method to remove rows having dups values of UserId & Company and retain higher value of versionId
+        for (File file : finalFiles) {
+            duplicateRemoval(file);
+
+        }
+
     }// Main ends here
 
+
+
+    public static void sortingFile(File Fl) {
+
+        String line = "";
+        List<List<String>> readList = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(Fl))) {
+            while ((line = br.readLine()) != null) {
+                readList.add(Arrays.asList(line.split(",")));
+
+            }
+            readList.sort(new Comparator<List<String>>() {
+                @Override
+                public int compare(List<String> o1, List<String> o2) {
+                    return o1.get(2).compareTo(o2.get(2));
+                }
+            });
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public static void duplicateRemoval(File Fl) throws IOException {
+
+        List<String[]> rowList = new ArrayList<String[]>();
+        BufferedReader reader = null;
+        reader = new BufferedReader(new FileReader(Fl));
+
+        String[] currLineSplitted;
+        while (reader.ready()) {
+            currLineSplitted = reader.readLine().split(",");
+            rowList.add(currLineSplitted);
+        }
+
+        Set<String[]> s = new TreeSet<String[]>(new Comparator<String[]>() {
+
+            @Override
+            public int compare(String[] o1, String[] o2) {
+                int cmp = 0;
+
+                // 0 position is userid, 4th position is company and 3 position is versionId
+                if (o1[0].equals(o2[0]) && o1[4].equals(o2[4]) && ((o1[3]).compareTo(o2[3])) > 0) {
+
+                    cmp = (o1[3]).compareTo(o2[3]);
+                }
+                return cmp;
+            }
+        });
+
+        s.addAll(rowList);
+    }
 
     public static List<File> getallfiles(String directoryName) {
 
@@ -52,11 +115,8 @@ public class AvailityInsurance {
         // get all the files from a directory
         File[] fList = directory.listFiles();
         resultList.addAll(Arrays.asList(fList));
-        System.out.println("ResultList is " + resultList);
         for (File file : fList) {
-            if (file.isFile()) {
-                System.out.println(file.getAbsolutePath());
-            } else if (file.isDirectory()) {
+            if (file.isDirectory()) {
                 resultList.addAll(getallfiles(file.getAbsolutePath()));
             }
         }
