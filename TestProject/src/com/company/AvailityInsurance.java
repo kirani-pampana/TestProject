@@ -19,7 +19,7 @@ public class AvailityInsurance {
     public static void main(String[] args) throws IOException {
         // provide complete path for parent directory
 
-        String mainDir = "/Users/kirani/Documents/TestWorkspace/TestProject/src/TestData/";
+        String mainDir = "/Users/avinash/Documents/TestWorkspace/TestProject/src/TestData/";
 
         List<File> csvFiles = getallfiles(mainDir);
 
